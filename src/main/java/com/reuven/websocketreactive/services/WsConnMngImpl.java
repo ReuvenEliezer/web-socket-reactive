@@ -10,9 +10,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class WSConnectionMngImpl implements WSConnectionMng {
+public class WsConnMngImpl implements WsConnMng {
 
-    private static final Logger logger = LoggerFactory.getLogger(WSConnectionMngImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(WsConnMngImpl.class);
 
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
 

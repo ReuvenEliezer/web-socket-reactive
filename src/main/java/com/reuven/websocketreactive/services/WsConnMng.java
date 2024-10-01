@@ -2,7 +2,7 @@ package com.reuven.websocketreactive.services;
 
 import org.springframework.web.reactive.socket.WebSocketSession;
 
-public interface WSConnectionMng {
+public interface WsConnMng {
 
     void addSession(WebSocketSession session);
 
