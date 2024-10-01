@@ -1,9 +1,9 @@
 package com.reuven.websocketreactive.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.client.reactive.ReactorNetty2ResourceFactory;
 import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.http.server.reactive.ReactorNetty2HttpHandlerAdapter;
@@ -78,10 +78,10 @@ public class WebConfig {
     }
 
     @Bean
-    public HttpServer nettyHttpServer(ApplicationContext context) {
+    public HttpServer nettyHttpServer(ApplicationContext context, @Value("${server.port}") int port) {
         HttpHandler handler = WebHttpHandlerBuilder.applicationContext(context).build();
         ReactorNetty2HttpHandlerAdapter adapter = new ReactorNetty2HttpHandlerAdapter(handler);
-        HttpServer httpServer = HttpServer.create().host("localhost").port(8080);
+        HttpServer httpServer = HttpServer.create().host("localhost").port(port);
         return httpServer.handle(adapter);
     }
 
