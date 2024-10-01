@@ -27,7 +27,7 @@ jobs:
         if: (success() || failure())
         with:
           name: Tests - web-socket-reactive #for analysis tests report
-          path: web-socket-reactive/target/surefire-reports/*.xml
+          path: target/surefire-reports/*.xml
           reporter: java-junit
           fail-on-error: true
       - name: Generate build number
