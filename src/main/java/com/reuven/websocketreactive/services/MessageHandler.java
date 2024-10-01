@@ -55,6 +55,7 @@ public class MessageHandler implements WebSocketHandler {
                                 .uri(DELAY_SERVICE_URI, session.getId())
                                 .retrieve()
                                 .bodyToMono(String.class)
+                                .doOnNext(data -> logger.info("Response from delay service: {}", data))
                                 .flatMap(responseData -> session.send(Mono.just(
                                         session.textMessage("Response from delay service: " + responseData)
                                 ))))
