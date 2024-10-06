@@ -22,8 +22,8 @@ import reactor.test.StepVerifier;
 import java.net.URI;
 import java.time.Duration;
 
-@SpringBootTest
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = WebSocketReactiveApplication.class)
+//@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = WebSocketReactiveApplication.class)
 class WebSocketReactiveApplicationTests {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSocketReactiveApplicationTests.class);
