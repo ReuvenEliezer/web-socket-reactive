@@ -7,6 +7,7 @@ package com.reuven.websocketreactive.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.reuven.websocketreactive.dto.Message;
 import com.reuven.websocketreactive.dto.MessageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,10 @@ import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Component
 public class MessageHandler implements WebSocketHandler {
@@ -48,19 +53,33 @@ public class MessageHandler implements WebSocketHandler {
                 })
 //                .flatMap(req -> {
 //                    logger.info("req: {}", req);
-//                    return session.send(Mono.just(session.textMessage(toString(new Message(UUID.randomUUID(), req.message(), LocalDateTime.now())))));
+//                    return session.send(session.textMessage(toString(new Message(UUID.randomUUID(), req.message(), LocalDateTime.now()))));
 //                })
-                .flatMap(requestMessage ->
-                        webClient.get()
-                                .uri(DELAY_SERVICE_URI, session.getId())
-                                .retrieve()
-                                .bodyToMono(String.class)
-                                .doOnNext(data -> logger.info("Response from delay service: {}", data))
-                                .flatMap(responseData -> session.send(Mono.just(
-                                        session.textMessage("Response from delay service: " + responseData)
-                                ))))
-                .doFinally(signalType -> wsConnMng.removeSession(session.getId()))
-                .then();
+//                .flatMap(req -> {
+//                    logger.info("req: {}", req);
+//                    return Mono.delay(Duration.ofMillis(300))
+//                            .flatMap(delay -> session.send(Mono.just(session.textMessage(
+//                                    toString(new Message(UUID.randomUUID(), req.message(), LocalDateTime.now()))
+//                            ))));
+//                })
+                .flatMap(requestMessage -> webClient.get()
+                        .uri(DELAY_SERVICE_URI, session.getId())
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .doOnNext(data -> logger.info("Response from delay service: {}", data))
+                        .flatMap(responseData -> session.send(Mono.just(session.textMessage("Response from delay service: " + responseData))))
+                        .onErrorResume(sendError -> {
+                            logger.error("Error during message send: {}", sendError.getMessage());
+                            return Mono.empty();
+                        }))
+                .doOnTerminate(() -> logger.info("Session {} terminated", session.getId()))
+                .doOnCancel(() -> logger.info("Session {} cancelled", session.getId()))
+                .doOnError(e -> logger.error("Session {} error: {}", session.getId(), e.getMessage()))
+                .doFinally(signalType -> {
+                    wsConnMng.removeSession(session.getId());
+                })
+                .then()
+                ;
     }
 
     private <T> String toString(T msg) {
