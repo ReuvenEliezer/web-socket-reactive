@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.reuven.websocketreactive.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -10,12 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reuven.websocketreactive.dto.MessageRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 @Component
 public class MessageHandler implements WebSocketHandler {
@@ -23,15 +22,21 @@ public class MessageHandler implements WebSocketHandler {
     private static final Logger logger = LoggerFactory.getLogger(MessageHandler.class);
 
     private static final String DELAY_SERVICE_URI = "http://localhost:8081/api/delay/{%s}";
+//    public static final Duration WS_OPEN_CONNECTION_DURATION = Duration.ofMinutes(10);  // timeout for disconnection socket without actions
+    private static final Duration FIXED_DELAY_ON_RETRY = Duration.ofSeconds(1);
+    private static final long MAX_RETRY = 3;
 
     private final ObjectMapper objectMapper;
     private final WsConnMng wsConnMng;
     private final WebClient webClient;
+    private final Duration wsOpenConnectionDuration;
 
-    public MessageHandler(ObjectMapper objectMapper, WsConnMng wsConnMng, WebClient webClient) {
+    public MessageHandler(ObjectMapper objectMapper, WsConnMng wsConnMng, WebClient webClient,
+                          @Value("${ws.open-connection-duration}") Duration wsOpenConnectionDuration) { //timeout for disconnection socket without actions
         this.objectMapper = objectMapper;
         this.wsConnMng = wsConnMng;
         this.webClient = webClient;
+        this.wsOpenConnectionDuration = wsOpenConnectionDuration;
     }
 
     @Override
@@ -39,6 +44,9 @@ public class MessageHandler implements WebSocketHandler {
         wsConnMng.addSession(session);
 
         return session.receive()
+                .timeout(wsOpenConnectionDuration)
+//                .delayElements(Duration.ofMillis(100))
+                .retryWhen(Retry.fixedDelay(MAX_RETRY, FIXED_DELAY_ON_RETRY))
                 .map(WebSocketMessage::getPayloadAsText)
                 .map(this::readValue)
                 .doOnNext(data -> logger.info("row data: {}", data))
@@ -48,19 +56,32 @@ public class MessageHandler implements WebSocketHandler {
                 })
 //                .flatMap(req -> {
 //                    logger.info("req: {}", req);
-//                    return session.send(Mono.just(session.textMessage(toString(new Message(UUID.randomUUID(), req.message(), LocalDateTime.now())))));
+//                    return session.send(session.textMessage(toString(new Message(UUID.randomUUID(), req.message(), LocalDateTime.now()))));
 //                })
-                .flatMap(requestMessage ->
-                        webClient.get()
-                                .uri(DELAY_SERVICE_URI, session.getId())
-                                .retrieve()
-                                .bodyToMono(String.class)
-                                .doOnNext(data -> logger.info("Response from delay service: {}", data))
-                                .flatMap(responseData -> session.send(Mono.just(
-                                        session.textMessage("Response from delay service: " + responseData)
-                                ))))
+//                .flatMap(req -> {
+//                    logger.info("req: {}", req);
+//                    return Mono.delay(Duration.ofMillis(300))
+//                            .flatMap(delay -> session.send(Mono.just(session.textMessage(
+//                                    toString(new Message(UUID.randomUUID(), req.message(), LocalDateTime.now()))
+//                            ))));
+//                })
+                .flatMap(requestMessage -> webClient.get()
+                        .uri(DELAY_SERVICE_URI, session.getId())
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .retryWhen(Retry.fixedDelay(MAX_RETRY, FIXED_DELAY_ON_RETRY))
+                        .doOnNext(data -> logger.info("Response from delay service: {}", data))
+                        .flatMap(responseData -> session.send(Mono.just(session.textMessage("Response from delay service: " + responseData))))
+                        .onErrorResume(sendError -> {
+                            logger.error("Error during message send: {}", sendError.getMessage());
+                            return Mono.empty();
+                        }))
+                .doOnTerminate(() -> logger.info("Session {} terminated", session.getId()))
+                .doOnCancel(() -> logger.info("Session {} cancelled", session.getId()))
+                .doOnError(e -> logger.error("Session {} error: {}", session.getId(), e.getMessage()))
                 .doFinally(signalType -> wsConnMng.removeSession(session.getId()))
-                .then();
+                .then()
+                ;
     }
 
     private <T> String toString(T msg) {
