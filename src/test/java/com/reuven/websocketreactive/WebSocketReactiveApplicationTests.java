@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.StopWatch;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -22,8 +23,9 @@ import reactor.test.StepVerifier;
 import java.net.URI;
 import java.time.Duration;
 
-@SpringBootTest
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = WebSocketReactiveApplication.class)
+//@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = WebSocketReactiveApplication.class)
+@ActiveProfiles("test")
 class WebSocketReactiveApplicationTests {
 
     private static final Logger logger = LoggerFactory.getLogger(WebSocketReactiveApplicationTests.class);
@@ -35,19 +37,23 @@ class WebSocketReactiveApplicationTests {
     @Value("${server.port}")
     private int port;
 
+    @Value("${ws.open-connection-duration}")
+    private Duration wsOpenConnectionDuration;
+
+
     @Autowired
     private ObjectMapper objectMapper;
 
     @PostConstruct
-    public void init() {
+    void init() {
         WEB_SOCKET_URI = URI.create(String.format(WEB_SOCKET_URI_STR, port));
     }
 
 
     @Test
-    public void testReactiveWebSocketPerformance() {
-        int totalConnections = 3;
-        int totalMessagesForEachConnection = 2;
+    void webSocketReactivePerformanceTest() {
+        int totalConnections = 50;
+        int totalMessagesForEachConnection = 1000;
 
 //        PerformanceMonitor performanceMonitor = new PerformanceMonitor();
 //        performanceMonitor.startMonitoring(20);
@@ -56,6 +62,7 @@ class WebSocketReactiveApplicationTests {
         stopWatch.start();
 
         Flux<Void> createConnections = Flux.range(0, totalConnections)
+//                .delayElements(Duration.ofMillis(100))
                 .flatMap(connNum -> client.execute(WEB_SOCKET_URI, session -> {
                             Flux<WebSocketMessage> messages = Flux.range(0, totalMessagesForEachConnection)
                                     .map(msgNum -> toString(new MessageRequest(String.format("Test Message number '%s' for connection-number '%s' sessionId: %s", msgNum + 1, connNum + 1, session.getId()))))
@@ -69,7 +76,6 @@ class WebSocketReactiveApplicationTests {
                         })
                 );
 
-//        createConnections.blockLast();
 //        Flux<Void> createConnections = Flux.range(0, totalConnections)
 //                .flatMap(connNum ->
 //                        client.execute(WEB_SOCKET_URI, session -> {
@@ -79,28 +85,14 @@ class WebSocketReactiveApplicationTests {
 //                            return session.send(messages.map(session::textMessage));
 //                        })
 //                );
+//        createConnections.blockLast();
 
-        waitCompletion(createConnections, Duration.ofSeconds(20));
+        waitCompletion(createConnections, wsOpenConnectionDuration.plusMinutes(1));
         stopWatch.stop();
 
         logger.info("Reactive WebSocket took: {}, shortSummary: {}", stopWatch.prettyPrint(), stopWatch.shortSummary());
     }
 
-
-    @Test
-    public void testReactiveWebSocketPerformance1() {
-        int totalConnections = 3;
-        Flux<Void> createConnections = Flux.range(0, totalConnections)
-                .delayElements(Duration.ofMillis(100))
-                .flatMap(connNum ->
-                        client.execute(WEB_SOCKET_URI, session -> {
-                            String msgStr = toString(new MessageRequest("Test Message " + connNum));
-                            return session.send(Mono.just(session.textMessage(msgStr)));
-                        })
-                );
-
-        waitCompletion(createConnections, Duration.ofSeconds(60));
-    }
 
     private static void waitCompletion(Flux<Void> createConnections, Duration maxWaitingTime) {
         StepVerifier.create(createConnections)

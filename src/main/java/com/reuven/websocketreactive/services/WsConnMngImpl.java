@@ -37,7 +37,10 @@ public class WsConnMngImpl implements WsConnMng {
     private static void closeSession(WebSocketSession session) {
         if (session != null && session.isOpen()) {
             try {
-                session.close();
+                session.close()
+                        .doOnSuccess(aVoid -> logger.info("Session closed: {}", session.getId()))
+                        .doOnError(e -> logger.error("Error occurred while closing session: {}", e.getMessage()))
+                        .subscribe();
                 logger.info("Session closed: {}", session.getId());
             } catch (Exception e) {
                 logger.error("Error occurred: {}", e.getMessage());
