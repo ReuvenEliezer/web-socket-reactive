@@ -24,7 +24,8 @@ public class MessageHandler implements WebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageHandler.class);
 
-    private static final String DELAY_SERVICE_URI = "http://localhost:8081/api/delay/{%s}";
+//    private static final String DELAY_SERVICE_URI = "http://localhost:8081/api/delay/{%s}";
+    private static final String DELAY_SERVICE_URI = "http://delay-service-reactive:8081/api/delay/{%s}";
 
 //    public static final Duration WS_OPEN_CONNECTION_DURATION = Duration.ofMinutes(10);  // timeout for disconnection socket without actions
     private static final Duration FIXED_DELAY_ON_RETRY = Duration.ofSeconds(1);
