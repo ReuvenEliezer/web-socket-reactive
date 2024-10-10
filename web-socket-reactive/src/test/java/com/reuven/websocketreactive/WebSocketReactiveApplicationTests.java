@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reuven.websocketreactive.dto.MessageRequest;
 import jakarta.annotation.PostConstruct;
+import org.assertj.core.api.Assert;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +24,12 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = WebSocketReactiveApplication.class)
@@ -57,6 +64,7 @@ class WebSocketReactiveApplicationTests {
         int totalConnections = 1; //50
         int totalMessagesForEachConnection = 1; //1000;
 
+        List<String> receivedMessages = new ArrayList<>(totalConnections * totalMessagesForEachConnection);
 //        CountDownLatch latch = new CountDownLatch(totalConnections * totalMessagesForEachConnection);
 
         ResourceMonitor monitor = new ResourceMonitor();
@@ -78,7 +86,10 @@ class WebSocketReactiveApplicationTests {
                             return session.send(messages)
                                     .thenMany(session.receive()
                                             .map(WebSocketMessage::getPayloadAsText)
-                                            .doOnNext(msg -> logger.info("Received message: {}", msg))
+                                            .doOnNext(msg -> {
+                                                logger.info("Received message: {}", msg);
+                                                receivedMessages.add(msg);
+                                            })
                                     )
                                     .then();
                         })
@@ -90,7 +101,10 @@ class WebSocketReactiveApplicationTests {
         waitCompletion(createConnections, wsOpenConnectionDuration.plusMinutes(1));
         stopWatch.stop();
         monitor.stopMonitoring();
-
+        assertFalse(receivedMessages.isEmpty(), "No messages were received!");
+        Assertions.assertThat(receivedMessages).hasSize(totalConnections * totalMessagesForEachConnection);
+        assertTrue(receivedMessages.stream().allMatch(msg -> msg.contains("Response from delay service")),
+                "Received messages do not contain expected response from delay service.");
         logger.info("Reactive WebSocket took: {}, shortSummary: {}", stopWatch.prettyPrint(), stopWatch.shortSummary());
     }
 
