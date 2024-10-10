@@ -1,0 +1,7 @@
+server:
+  port: 8080
+delay:
+  service:
+    host: ${DELAY_SERVICE_HOST:localhost}
+ws:
+  open-connection-duration: 2M
