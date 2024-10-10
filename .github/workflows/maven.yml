@@ -16,20 +16,29 @@ jobs:
           java-version: '17'
           distribution: 'corretto'
           cache: maven
-      - name: Build with Maven
-        run: mvn -B package --file pom.xml
+      - name: Build by Maven
+        run: mvn clean install -DskipTests=true
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
       - name: Update dependency graph
         uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
-      - name: web-socket-reactive JUnit Test Report
+
+      - name: "docker compose up"
+        run: docker compose -f docker-compose.yml up -d --wait
+#      - name: "Wait 120 seconds for docker container will register in Eureka Server"
+#        run: sleep 120 # wait until docker container started (in second)
+      - name: "run integration tests"
+        run: mvn test
+      - name: websocket-reactive integration Test Report
         uses: dorny/test-reporter@v1.9.1 #{owner}/{repository}@{ref}
         if: (success() || failure())
+        #        if: github.actor != 'dependabot[bot]' && (success() || failure())
         with:
-          name: Tests - web-socket-reactive #for analysis tests report
-          path: target/surefire-reports/*.xml
+          name: websocket-reactive Tests - converter-service #for analysis tests report
+          path: web-socket-reactive/target/surefire-reports/*.xml
           reporter: java-junit
           fail-on-error: true
+
       - name: Generate build number
         id: buildnumber
         uses: einaregilsson/build-number@v3

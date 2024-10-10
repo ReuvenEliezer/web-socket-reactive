@@ -1,0 +1,31 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: delay-service-reactive
+  boot:
+    admin:
+      client:
+#        enabled: false  # If you want Spring Boot Admin to manage services only through Eureka and not via direct registration, you can ensure that direct registration is disabled.
+        url: "http://localhost:8085"
+        instance:
+          service-base-url: "http://localhost:${server.port}"
+management:
+  tracing:
+    sampling:
+      probability: 1.0 # only for testing purpose, switch back to 0.1 for production code
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    loggers:
+      enabled: true
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+ws:
+  open-connection-duration: 1M

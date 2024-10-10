@@ -1,0 +1,4 @@
+server:
+  port: 8080
+ws:
+  open-connection-duration: 2M

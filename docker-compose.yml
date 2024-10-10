@@ -1,0 +1,45 @@
+services:
+  admin-server:
+    build:
+      context: ./admin-server
+      dockerfile: Dockerfile
+    ports:
+      - "8085:8085"
+    networks:
+      - my-network
+  web-socket-reactive:
+    build:
+      context: ./web-socket-reactive
+      dockerfile: Dockerfile
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s  # preventing multiple services from trying to bind to the same port simultaneously
+    depends_on:
+      - admin-server
+    ports:
+      - "8080-8080"
+    environment:
+      - "SPRING_PROFILES_ACTIVE=docker"
+    networks:
+      - my-network
+  delay-service-reactive:
+    build:
+      context: ./delay-service-reactive
+      dockerfile: Dockerfile
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 30s  # preventing multiple services from trying to bind to the same port simultaneously
+    depends_on:
+      - admin-server
+    ports:
+      - "8081-8081"
+    environment:
+      - "SPRING_PROFILES_ACTIVE=docker"
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
