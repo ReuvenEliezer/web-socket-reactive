@@ -5,3 +5,6 @@ spring:
         url: "http://admin-server:8085"
         instance:
           service-base-url: "http://${spring.application.name}:${server.port}"
+delay:
+  service:
+    host: "delay-service-reactive"
