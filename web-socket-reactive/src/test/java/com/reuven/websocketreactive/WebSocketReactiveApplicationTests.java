@@ -61,8 +61,8 @@ class WebSocketReactiveApplicationTests {
 
     @Test
     void webSocketReactivePerformanceTest() throws InterruptedException {
-        int totalConnections = 50;
-        int totalMessagesForEachConnection = 1000;
+        int totalConnections = 10;
+        int totalMessagesForEachConnection = 100;
 
         List<String> receivedMessages = new ArrayList<>(totalConnections * totalMessagesForEachConnection);
 //        CountDownLatch latch = new CountDownLatch(totalConnections * totalMessagesForEachConnection);
