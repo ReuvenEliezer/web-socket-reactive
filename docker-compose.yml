@@ -20,8 +20,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - "DELAY_SERVICE_HOST=delay-service-reactive"
-      - "SPRING_PROFILES_ACTIVE=docker"
+      DELAY_SERVICE_HOST: delay-service-reactive
+      SPRING_PROFILES_ACTIVE: docker
     networks:
       - my-network
   delay-service-reactive:
