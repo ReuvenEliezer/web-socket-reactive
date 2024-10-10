@@ -32,15 +32,12 @@ class WebSocketReactiveApplicationTests {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketReactiveApplicationTests.class);
 
     private final WebSocketClient client = new ReactorNettyWebSocketClient();
-    private static final String HOST;
-    private static final boolean IS_RUNNING_INSIDE_DOCKER;
 
-    private static final String WEB_SOCKET_URI_STR = "ws://%s:%s/ws/messages";
+    private static final String WEB_SOCKET_URI_STR = "ws://localhost:%s/ws/messages";
     private static URI WEB_SOCKET_URI;
 
     @Autowired
     private ObjectMapper objectMapper;
-
 
     @Value("${server.port}")
     private int port;
@@ -51,20 +48,7 @@ class WebSocketReactiveApplicationTests {
 
     @PostConstruct
     void init() {
-        String fullUri = String.format(WEB_SOCKET_URI_STR, HOST, port);
-        logger.info("fullUrl: '{}'. runningInsideDocker: '{}'", fullUri, IS_RUNNING_INSIDE_DOCKER);
-        WEB_SOCKET_URI = URI.create(fullUri);
-    }
-
-    static {
-        boolean isRunningInsideDocker;
-        try (Stream<String> stream = Files.lines(Paths.get("/proc/1/cgroup"))) {
-            isRunningInsideDocker = stream.anyMatch(line -> line.contains("/docker"));
-        } catch (IOException e) {
-            isRunningInsideDocker = false;
-        }
-        IS_RUNNING_INSIDE_DOCKER = isRunningInsideDocker;
-        HOST = IS_RUNNING_INSIDE_DOCKER ? "web-socket-reactive" : "localhost";
+        WEB_SOCKET_URI = URI.create(String.format(WEB_SOCKET_URI_STR, port));
     }
 
 
