@@ -26,8 +26,8 @@ jobs:
 
       - name: "docker compose up"
         run: docker compose -f docker-compose.yml up -d --wait
-      - name: "Wait 30 seconds for docker container will register in Eureka Server"
-        run: sleep 30 # wait until docker container started (in second)
+#      - name: "Wait 30 seconds for docker container will register in Eureka Server"
+#        run: sleep 30 # wait until docker container started (in second)
       - name: "run integration tests"
         run: mvn test
       - name: websocket-reactive integration Test Report

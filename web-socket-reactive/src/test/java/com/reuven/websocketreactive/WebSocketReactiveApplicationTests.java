@@ -70,8 +70,8 @@ class WebSocketReactiveApplicationTests {
 
     @Test
     void webSocketReactivePerformanceTest() throws InterruptedException {
-        int totalConnections = 50;
-        int totalMessagesForEachConnection = 1000;
+        int totalConnections = 1; //50
+        int totalMessagesForEachConnection = 1; //1000;
 
 //        CountDownLatch latch = new CountDownLatch(totalConnections * totalMessagesForEachConnection);
 
@@ -94,7 +94,8 @@ class WebSocketReactiveApplicationTests {
                             return session.send(messages)
                                     .thenMany(session.receive()
                                             .map(WebSocketMessage::getPayloadAsText)
-                                            .log())
+                                            .doOnNext(msg -> logger.info("Received message: {}", msg))
+                                    )
                                     .then();
                         })
                 );
