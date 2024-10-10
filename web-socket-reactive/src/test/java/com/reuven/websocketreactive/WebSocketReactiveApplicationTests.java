@@ -32,11 +32,15 @@ class WebSocketReactiveApplicationTests {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketReactiveApplicationTests.class);
 
     private final WebSocketClient client = new ReactorNettyWebSocketClient();
-    private static final String HOST = "localhost";
+    private static final String HOST;
     private static final boolean IS_RUNNING_INSIDE_DOCKER;
 
     private static final String WEB_SOCKET_URI_STR = "ws://%s:%s/ws/messages";
     private static URI WEB_SOCKET_URI;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
 
     @Value("${server.port}")
     private int port;
@@ -44,9 +48,6 @@ class WebSocketReactiveApplicationTests {
     @Value("${ws.open-connection-duration}")
     private Duration wsOpenConnectionDuration;
 
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @PostConstruct
     void init() {
@@ -63,6 +64,7 @@ class WebSocketReactiveApplicationTests {
             isRunningInsideDocker = false;
         }
         IS_RUNNING_INSIDE_DOCKER = isRunningInsideDocker;
+        HOST = IS_RUNNING_INSIDE_DOCKER ? "web-socket-reactive" : "localhost";
     }
 
 
