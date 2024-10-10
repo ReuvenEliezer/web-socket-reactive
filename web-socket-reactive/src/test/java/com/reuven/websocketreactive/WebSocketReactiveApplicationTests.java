@@ -17,8 +17,12 @@ import org.springframework.web.reactive.socket.client.WebSocketClient;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.stream.Stream;
 
 @SpringBootTest
 //@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT, classes = WebSocketReactiveApplication.class)
@@ -28,7 +32,10 @@ class WebSocketReactiveApplicationTests {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketReactiveApplicationTests.class);
 
     private final WebSocketClient client = new ReactorNettyWebSocketClient();
-    private static final String WEB_SOCKET_URI_STR = "ws://localhost:%s/ws/messages";
+    private static final String HOST = "localhost";
+    private static final boolean IS_RUNNING_INSIDE_DOCKER;
+
+    private static final String WEB_SOCKET_URI_STR = "ws://%s:%s/ws/messages";
     private static URI WEB_SOCKET_URI;
 
     @Value("${server.port}")
@@ -43,7 +50,19 @@ class WebSocketReactiveApplicationTests {
 
     @PostConstruct
     void init() {
-        WEB_SOCKET_URI = URI.create(String.format(WEB_SOCKET_URI_STR, port));
+        String fullUri = String.format(WEB_SOCKET_URI_STR, HOST, port);
+        logger.info("fullUrl: '{}'. runningInsideDocker: '{}'", fullUri, IS_RUNNING_INSIDE_DOCKER);
+        WEB_SOCKET_URI = URI.create(fullUri);
+    }
+
+    static {
+        boolean isRunningInsideDocker;
+        try (Stream<String> stream = Files.lines(Paths.get("/proc/1/cgroup"))) {
+            isRunningInsideDocker = stream.anyMatch(line -> line.contains("/docker"));
+        } catch (IOException e) {
+            isRunningInsideDocker = false;
+        }
+        IS_RUNNING_INSIDE_DOCKER = isRunningInsideDocker;
     }
 
 
