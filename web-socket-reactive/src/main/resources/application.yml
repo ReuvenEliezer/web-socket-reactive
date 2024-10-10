@@ -2,7 +2,7 @@ server:
   port: 8080
 spring:
   application:
-    name: delay-service-reactive
+    name: web-socket-reactive
   boot:
     admin:
       client:
