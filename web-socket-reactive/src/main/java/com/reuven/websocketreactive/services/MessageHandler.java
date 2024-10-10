@@ -51,7 +51,8 @@ public class MessageHandler implements WebSocketHandler {
     @Override
     public Mono<Void> handle(WebSocketSession session) {
         wsConnMng.addSession(session);
-
+        String delayServiceFullUri = String.format(DELAY_SERVICE_URI, delayServiceHost, session.getId());
+        logger.info("delayServiceFullUri {}", delayServiceFullUri);
         return session.receive()
                 .timeout(wsOpenConnectionDuration)
 //                .delayElements(Duration.ofMillis(100))
@@ -75,7 +76,7 @@ public class MessageHandler implements WebSocketHandler {
 //                            ))));
 //                })
                 .flatMap(requestMessage -> webClient.get()
-                        .uri(DELAY_SERVICE_URI, delayServiceHost, session.getId())
+                        .uri(delayServiceFullUri)
                         .retrieve()
                         .bodyToMono(String.class)
                         .retryWhen(Retry.fixedDelay(MAX_RETRY, FIXED_DELAY_ON_RETRY))
