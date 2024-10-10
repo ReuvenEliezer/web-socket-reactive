@@ -24,10 +24,10 @@ public class MessageHandler implements WebSocketHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageHandler.class);
 
-//    private static final String DELAY_SERVICE_URI = "http://localhost:8081/api/delay/{%s}";
-    private static final String DELAY_SERVICE_URI = "http://delay-service-reactive:8081/api/delay/{%s}";
-
-//    public static final Duration WS_OPEN_CONNECTION_DURATION = Duration.ofMinutes(10);  // timeout for disconnection socket without actions
+    //    private static final String DELAY_SERVICE_URI = "http://localhost:8081/api/delay/{%s}";
+    private static final String DELAY_SERVICE_URI = "http://%s:8081/api/delay/{%s}";
+    private static String ENV;
+    //    public static final Duration WS_OPEN_CONNECTION_DURATION = Duration.ofMinutes(10);  // timeout for disconnection socket without actions
     private static final Duration FIXED_DELAY_ON_RETRY = Duration.ofSeconds(1);
     private static final long MAX_RETRY = 3;
 
@@ -42,7 +42,10 @@ public class MessageHandler implements WebSocketHandler {
         this.wsConnMng = wsConnMng;
         this.webClient = webClient;
         this.wsOpenConnectionDuration = wsOpenConnectionDuration;
+        ENV = System.getenv().getOrDefault("DELAY_SERVICE_HOST", "localhost");
+        logger.info("running on DELAY_SERVICE_HOST {}", ENV);
     }
+
 
     @Override
     public Mono<Void> handle(WebSocketSession session) {
@@ -71,7 +74,7 @@ public class MessageHandler implements WebSocketHandler {
 //                            ))));
 //                })
                 .flatMap(requestMessage -> webClient.get()
-                        .uri(DELAY_SERVICE_URI, session.getId())
+                        .uri(DELAY_SERVICE_URI, ENV, session.getId())
                         .retrieve()
                         .bodyToMono(String.class)
                         .retryWhen(Retry.fixedDelay(MAX_RETRY, FIXED_DELAY_ON_RETRY))
