@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 1s  # תדירות האיסוף מכל היעדים
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 1s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'web-socket-reactive'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 1s
+    scheme: http
+    static_configs:
+      - targets: ['<your-ipconfig>:8080']
+        labels:
+          application: "web-socket-reactive"

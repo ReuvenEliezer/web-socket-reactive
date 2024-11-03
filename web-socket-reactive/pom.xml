@@ -38,6 +38,17 @@
             <artifactId>micrometer-tracing-bridge-brave</artifactId>
         </dependency>
 
+<!--        for prometheus & grafana -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
+<!--    -->
+
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-tools</artifactId>

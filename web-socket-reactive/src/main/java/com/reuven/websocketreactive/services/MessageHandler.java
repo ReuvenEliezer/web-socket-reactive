@@ -2,8 +2,8 @@ package com.reuven.websocketreactive.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.reuven.websocketreactive.dto.MessageResponse;
 import com.reuven.websocketreactive.dto.MessageRequest;
+import com.reuven.websocketreactive.dto.MessageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -69,10 +69,11 @@ public class MessageHandler implements WebSocketHandler {
 //                })
 //                .flatMap(req -> {
 //                    logger.info("req: {}", req);
-//                    return Mono.delay(Duration.ofMillis(300))
-//                            .flatMap(delay -> session.send(Mono.just(session.textMessage(
-//                                    writeValueAsString(new MessageResponse(UUID.randomUUID(), req.message(), LocalDateTime.now()))
-//                            ))));
+//                    return Mono.delay(Duration.ofMillis(1))
+//                            .flatMap(delay ->
+//                                    session.send(Mono.just(session.textMessage(
+//                                            writeValueAsString(new MessageResponse(UUID.randomUUID(), "Response from delay service: " + req.message(), LocalDateTime.now()))
+//                                    ))));
 //                })
                 .flatMap(requestMessage -> webClient.get()
                         .uri(DELAY_SERVICE_URI, delayServiceHost, session.getId())
