@@ -17,7 +17,7 @@ public class DelayController {
 
     private static final Logger logger = LoggerFactory.getLogger(DelayController.class);
 
-    private static final Duration DELAY_DURATION = Duration.ofMillis(1);
+    private static final Duration DELAY_DURATION = Duration.ofMillis(200);
 
     @GetMapping("/delay/{sessionId}")
     public Mono<String> delay(@PathVariable String sessionId) {

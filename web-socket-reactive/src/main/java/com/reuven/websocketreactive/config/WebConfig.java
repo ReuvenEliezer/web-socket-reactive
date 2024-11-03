@@ -1,10 +1,9 @@
 package com.reuven.websocketreactive.config;
 
-import io.netty.channel.ChannelOption;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
+import brave.Tracing;
+import io.micrometer.tracing.Tracer;
+import io.micrometer.tracing.brave.bridge.BraveTraceContext;
+import io.micrometer.tracing.brave.bridge.BraveTracer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -19,7 +18,7 @@ import org.springframework.web.reactive.socket.server.support.HandshakeWebSocket
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter;
 import org.springframework.web.reactive.socket.server.upgrade.ReactorNettyRequestUpgradeStrategy;
 import reactor.netty.http.client.HttpClient;
-import reactor.netty.tcp.TcpClient;
+import reactor.netty.resources.ConnectionProvider;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -102,10 +101,20 @@ public class WebConfig {
 //                .build();
 //
 //        HttpClient httpClient = HttpClient.create()
-//                .responseTimeout(Duration.ofSeconds(30)); // הגדרת timeout ל-30 שניות
+//                .responseTimeout(Duration.ofSeconds(30));
 //
 //        return WebClient.builder()
 //                .clientConnector(new ReactorClientHttpConnector(httpClient))
+//                .build();
+
+//        ConnectionProvider connectionProvider = ConnectionProvider.builder("myConnectionPool")
+//                .maxConnections(500)
+//                .pendingAcquireMaxCount(5000)
+//                .pendingAcquireTimeout(Duration.ofSeconds(3))  // Pool#acquire(Duration) has been pending for more than the configured timeout of 45000ms
+//                .build();
+//        ReactorClientHttpConnector clientHttpConnector = new ReactorClientHttpConnector(HttpClient.create(connectionProvider));
+//        return WebClient.builder()
+//                .clientConnector(clientHttpConnector)
 //                .build();
         return WebClient.create();
     }
