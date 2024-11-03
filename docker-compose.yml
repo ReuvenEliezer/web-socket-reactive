@@ -24,6 +24,23 @@ services:
       - "DELAY_SERVICE_HOST=delay-service-reactive"
     networks:
       - my-network
+#  web-socket:
+#    build:
+#      context: ./web-socket
+#      dockerfile: Dockerfile
+#    deploy:
+#      restart_policy:
+#        condition: on-failure
+#        delay: 30s  # preventing multiple services from trying to bind to the same port simultaneously
+#    depends_on:
+#      - admin-server
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - "SPRING_PROFILES_ACTIVE=docker"
+#      - "DELAY_SERVICE_HOST=delay-service"
+#    networks:
+#      - my-network
   delay-service-reactive:
     build:
       context: ./delay-service-reactive

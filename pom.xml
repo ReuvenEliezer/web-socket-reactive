@@ -25,6 +25,7 @@
     <modules>
         <module>admin-server</module>
         <module>web-socket-reactive</module>
+        <module>web-socket</module>
         <module>delay-service-reactive</module>
     </modules>
 
