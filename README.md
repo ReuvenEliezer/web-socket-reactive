@@ -29,11 +29,19 @@ Total Test duration:
 
 # Benchmark results:
     
-## web-socket-reactive:
-
+## web-socket-reactive 
+### Java 17:
 ![reactive-threads.png](reactive-threads.png)
 ![reactive-memory.png](reactive-memory.png)
+### Java 21:
+![img_1.png](img_1.png)
+![img.png](img.png)
 
 ## web-socket-blocking:
+### Java 17:
 ![blocking-threads.png](blocking-threads.png)
 ![blocking-memory.png](blocking-memory.png)
+
+### Java 21:
+![img_3.png](img_3.png)
+![img_2.png](img_2.png)
