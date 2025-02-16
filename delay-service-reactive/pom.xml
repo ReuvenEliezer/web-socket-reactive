@@ -14,7 +14,7 @@
     <description>delay-service-reactive</description>
 
     <properties>
-        <springdoc.version>2.8.3</springdoc.version>
+        <springdoc.version>2.8.4</springdoc.version>
     </properties>
 
     <dependencies>
